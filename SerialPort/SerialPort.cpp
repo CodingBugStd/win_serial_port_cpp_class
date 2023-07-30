@@ -1,6 +1,7 @@
 #include "SerialPort.h"
-#include <windows.h>
 #include <tchar.h>
+#include <iostream>
+#include "SerialPortHelper.h"
 
 std::vector<SerialPort::SerialPortInfo>    SerialPort::_serialPortInfoList;
 
@@ -16,8 +17,94 @@ SerialPort::SerialPort()
 
     memset( _receiveBuf , 0 , 2048 );
     _receiveLen = 0;
+    _receiveBufLock = new std::mutex;
+    _receiveBufLock->unlock();
+
     _eventHandler = NULL;
     _eventHandlerUserCtx = NULL;
+
+    hSerial = INVALID_HANDLE_VALUE;
+    dcbSerialParams = {0};
+    _recieveThread = NULL;
+}
+
+void SerialPort::_recieveThreadImpl()
+{
+    SerialPortEvent _evt;
+    char readBuffer[1024];
+    // uint16_t readBufferUse = 0;
+    // int forceCopyFlag = 0;  //多次尝试上锁未成功，直接阻塞式上锁标志位
+    // int tryUnlockCnt = 0;
+
+    while(1)
+    {
+        DWORD bytesRead;
+        if (!ReadFile(hSerial, readBuffer , sizeof(readBuffer) , &bytesRead, NULL)) {
+            std::cerr << "Error in ReadFile." << std::endl;
+            CloseHandle(hSerial);
+            hSerial = INVALID_HANDLE_VALUE;
+
+            //异步回调
+            if( _eventHandler != NULL )
+            {
+                _evt.code = DISCONNET;
+                _evt.instance = this;
+                _evt.user_ctx = this->_eventHandlerUserCtx;
+                _eventHandler( _evt );
+            }
+
+            return;
+        }
+
+        //载入异步接收缓冲区
+        if( bytesRead > 0 )
+        {
+            //内部缓冲区长度累加
+            // readBufferUse += bytesRead;
+
+            // if( _receiveBufLock->try_lock() )
+            // {
+                _receiveBufLock->lock();
+
+                if( _receiveLen  < sizeof( _receiveBuf ) )
+                {
+                    memcpy( _receiveBuf + _receiveLen , readBuffer , bytesRead );
+                    _receiveLen += bytesRead;
+                }
+                // readBufferUse = 0;
+                // tryUnlockCnt = 0;
+
+                _receiveBufLock->unlock();
+            // }
+            // else
+            // {
+            //     tryUnlockCnt++;
+            //     if( tryUnlockCnt == 3 ){
+            //         tryUnlockCnt = 0;
+            //         forceCopyFlag = 1;
+            //     }
+            // }
+
+            //强制将内部接收缓存阻塞式塞入实例中的接收缓存
+            //可能会导致等锁丢包
+            // if( forceCopyFlag )
+            // {
+            //     _receiveBufLock->unlock();
+
+            //     if( _receiveLen + readBufferUse < sizeof( _receiveBuf ) )
+            //     {
+            //         memcpy( _receiveBuf + _receiveLen , readBuffer , readBufferUse );
+            //         _receiveLen += bytesRead;
+            //     }
+            //     readBufferUse = 0;
+
+            //     _receiveBufLock->unlock();
+
+            //     forceCopyFlag = 0;
+
+            // }
+        }
+    }
 }
 
 SerialPort::~SerialPort()
@@ -62,7 +149,7 @@ void SerialPort::_refreshSerialPortInfoList()
         if (res == ERROR_SUCCESS) {
             valueData[valueDataSize] = '\0';
             std::wstring portName(reinterpret_cast<wchar_t*>(valueData));
-            info.portName = (char*)portName.data();
+            info.portName = (char*)portName.data();//Wstring2String(portName);
             _serialPortInfoList.push_back(info);
         }
     }
@@ -129,7 +216,48 @@ bool SerialPort::write(uint8_t*dat , size_t size)
     
 bool SerialPort::_connect()
 {
-    
+    hSerial = CreateFile( (LPCSTR)_serialInfo.portName.c_str() , GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hSerial == INVALID_HANDLE_VALUE) {
+        std::cerr << "Failed to open serial port." << std::endl;
+        return false;
+    }
+
+    dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+    if (!GetCommState(hSerial, &dcbSerialParams)) {
+        std::cerr << "Error in GetCommState." << std::endl;
+        CloseHandle(hSerial);
+        return false;
+    }
+
+    dcbSerialParams.BaudRate = _serialCfg.bound;  // 设置波特率
+    dcbSerialParams.ByteSize = _serialCfg.dataBit;         // 数据位
+    dcbSerialParams.StopBits = _serialCfg.stopBit - 1 ; //见 ONESTOPBIT 宏
+    dcbSerialParams.Parity = NOPARITY;    // 无奇偶校验
+
+    if (!SetCommState(hSerial, &dcbSerialParams)) {
+        std::cerr << "Error in SetCommState." << std::endl;
+        CloseHandle(hSerial);
+        hSerial == INVALID_HANDLE_VALUE;
+        return false;
+    }
+
+    COMMTIMEOUTS timeouts = {0};
+    timeouts.ReadIntervalTimeout = 5;             // 读取超时时间（以毫秒为单位） -> 单个字符接收完毕后的超时时间
+    timeouts.ReadTotalTimeoutConstant = 5;        // 读取总超时时间（以毫秒为单位）
+    timeouts.ReadTotalTimeoutMultiplier = 1;      // 读取总超时时间乘数
+    timeouts.WriteTotalTimeoutConstant = 5;    // 写入总超时时间（以毫秒为单位）
+    timeouts.WriteTotalTimeoutMultiplier = 1;     // 写入总超时时间乘数
+
+    if (!SetCommTimeouts(hSerial, &timeouts)) {
+        std::cerr << "Failed to set serial port timeouts." << std::endl;
+        CloseHandle(hSerial);
+        return false;
+    }
+
+    //建立异步接收、回调函数线程
+    _recieveThread = new std::thread(&SerialPort::_recieveThreadImpl , this );
+
+    return true;
 }
 
 size_t SerialPort::receiveLen()
@@ -139,7 +267,18 @@ size_t SerialPort::receiveLen()
 
 int SerialPort::read(uint8_t*buf , size_t size)
 {
+    // if( !isConnected() )
+    // {
+    //     return -1;
+    // }
+    int cnt = size > _receiveLen ? _receiveLen : size ;
+    _receiveBufLock->lock();
+    memcpy( buf , _receiveBuf , cnt );
+    memmove( _receiveBuf , _receiveBuf+cnt , _receiveLen - cnt );
+    _receiveLen -= cnt;
+    _receiveBufLock->unlock();
 
+    return cnt;
 }
 
 SerialPort::SerialConnectCfg SerialPort::connectedSerialPortCfg()

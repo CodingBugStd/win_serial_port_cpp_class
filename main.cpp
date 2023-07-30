@@ -12,6 +12,22 @@ int main()
         std::cout<<portInfo.portName<<std::endl;
     }
 
+    SerialPort serialPort;
+    serialPort.connect(8 , 921600);
+
+    char buf[128];
+    int cnt;
+
+    while(1)
+    {
+        cnt = serialPort.read( (uint8_t*)buf , sizeof(buf) - 1 );
+        if( cnt > 0 )
+        {
+            buf[cnt] = '\0';
+            std::cout<<buf;
+        }
+    }
+
     while(1);
     
     return 0;
@@ -49,28 +65,54 @@ int main()
 //         return 1;
 //     }
 
-//     // 3. 读取数据
-//     char readBuffer[256];
-//     DWORD bytesRead;
-//     if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) {
-//         std::cerr << "Error in ReadFile." << std::endl;
+//     COMMTIMEOUTS timeouts = {0};
+//     timeouts.ReadIntervalTimeout = 5;             // 读取超时时间（以毫秒为单位） -> 单个字符接收完毕后的超时时间
+//     timeouts.ReadTotalTimeoutConstant = 5;        // 读取总超时时间（以毫秒为单位）
+//     timeouts.ReadTotalTimeoutMultiplier = 1;      // 读取总超时时间乘数
+//     timeouts.WriteTotalTimeoutConstant = 5;    // 写入总超时时间（以毫秒为单位）
+//     timeouts.WriteTotalTimeoutMultiplier = 1;     // 写入总超时时间乘数
+
+//     if (!SetCommTimeouts(hSerial, &timeouts)) {
+//         std::cerr << "Failed to set serial port timeouts." << std::endl;
 //         CloseHandle(hSerial);
-//         return 1;
+//         return false;
 //     }
 
-//     // 输出读取到的数据
-//     std::cout << "Read " << bytesRead << " bytes: " << readBuffer << std::endl;
-
-//     // 4. 写入数据
-//     const char* writeBuffer = "Hello, serial port!";
-//     DWORD bytesWritten;
-//     if (!WriteFile(hSerial, writeBuffer, strlen(writeBuffer), &bytesWritten, NULL)) {
-//         std::cerr << "Error in WriteFile." << std::endl;
-//         CloseHandle(hSerial);
-//         return 1;
+//     while(1)
+//     {
+//         char readBuffer[256];
+//         DWORD bytesRead;
+//         if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) {
+//             std::cerr << "Error in ReadFile." << std::endl;
+//             CloseHandle(hSerial);
+//             return 1;
+//         }
+//         if( bytesRead != 0 )    std::cout << readBuffer ;
+//         Sleep(1);
 //     }
 
-//     std::cout << "Written " << bytesWritten << " bytes: " << writeBuffer << std::endl;
+//     // // 3. 读取数据
+//     // char readBuffer[256];
+//     // DWORD bytesRead;
+//     // if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) {
+//     //     std::cerr << "Error in ReadFile." << std::endl;
+//     //     CloseHandle(hSerial);
+//     //     return 1;
+//     // }
+
+//     // // 输出读取到的数据
+//     // std::cout << "Read " << bytesRead << " bytes: " << readBuffer << std::endl;
+
+//     // // 4. 写入数据
+//     // const char* writeBuffer = "Hello, serial port!";
+//     // DWORD bytesWritten;
+//     // if (!WriteFile(hSerial, writeBuffer, strlen(writeBuffer), &bytesWritten, NULL)) {
+//     //     std::cerr << "Error in WriteFile." << std::endl;
+//     //     CloseHandle(hSerial);
+//     //     return 1;
+//     // }
+
+//     // std::cout << "Written " << bytesWritten << " bytes: " << writeBuffer << std::endl;
 
 //     // 5. 关闭串口
 //     CloseHandle(hSerial);

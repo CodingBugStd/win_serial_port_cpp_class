@@ -4,6 +4,11 @@
 #include <stdint.h>
 #include <string>
 #include <thread>
+#include <mutex>
+#include <windows.h>
+
+//异步event函数目前线程不安全
+//注册回调尽量在connect前
 
 class SerialPort{
 public:
@@ -33,11 +38,11 @@ public:
         void*               user_ctx;
     }SerialPortEvent;
 
-    bool connect( std::string portName , uint32_t bound = 115200 , uint8_t dataBit = 1 , uint8_t stopBit = 1 );
+    bool connect( std::string portName , uint32_t bound = 115200 , uint8_t dataBit = 8 , uint8_t stopBit = 1 );
     bool connect( std::string portName , SerialConnectCfg& cfg);
-    bool connect( int portNumber , uint32_t bound = 115200 , uint8_t dataBit = 1 , uint8_t stopBit = 1 );
+    bool connect( int portNumber , uint32_t bound = 115200 , uint8_t dataBit = 8 , uint8_t stopBit = 1 );
     bool connect( int portNumber , SerialConnectCfg& cfg);
-    bool connect( SerialPortInfo& info , uint32_t bound = 115200 , uint8_t dataBit = 1 , uint8_t stopBit = 1 );
+    bool connect( SerialPortInfo& info , uint32_t bound = 115200 , uint8_t dataBit = 8 , uint8_t stopBit = 1 );
     bool connect( SerialPortInfo& info , SerialConnectCfg& cfg );
     bool disconnect();
     bool isConnected();
@@ -55,7 +60,7 @@ public:
      */
     bool write(uint8_t*dat , size_t size);
     /**
-     * @brief 从串口读取(异步，内部带锁，直接从接收缓存中获取)
+     * @brief 从串口读取(同步，内部带锁，直接从接收缓存中获取)
      * 
      * @param buf 缓存区
      * @param size 读取的大小
@@ -83,7 +88,13 @@ private:
     void*   _eventHandlerUserCtx;
     uint8_t _receiveBuf[2048];
     size_t  _receiveLen;
+    std::mutex*  _receiveBufLock;
     bool _connect();
+
+    HANDLE hSerial;
+    DCB dcbSerialParams;
+    std::thread* _recieveThread;
+    void _recieveThreadImpl();
 
     static void _refreshSerialPortInfoList();
     static std::vector<SerialPortInfo>    _serialPortInfoList;

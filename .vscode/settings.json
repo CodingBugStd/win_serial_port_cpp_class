@@ -51,6 +51,7 @@
         "ctime": "cpp",
         "ratio": "cpp",
         "stop_token": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "mutex": "cpp"
     }
 }
