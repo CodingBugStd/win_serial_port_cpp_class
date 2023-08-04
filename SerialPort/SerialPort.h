@@ -7,6 +7,10 @@
 #include <mutex>
 #include <windows.h>
 
+//todo
+//1、接收线程的终止与回收
+//2、析构器
+
 //异步event函数目前线程不安全
 //注册回调尽量在connect前
 
@@ -29,7 +33,7 @@ public:
     typedef enum{
         RECEIVE = 0,
         DISCONNET = 1,
-        CONNECTED = 2
+        DISCONNECT = 2
     }SerialPortEventCode;
 
     typedef struct{
@@ -94,6 +98,9 @@ private:
     HANDLE hSerial;
     DCB dcbSerialParams;
     std::thread* _recieveThread;
+    // std::thread* _callbackThread;
+    // std::vector<SerialPortEvent> _evtList;
+    // void _callbackThreadImpl();
     void _recieveThreadImpl();
 
     static void _refreshSerialPortInfoList();

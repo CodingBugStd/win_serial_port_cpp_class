@@ -3,9 +3,20 @@
 #include "SerialPort.h"
 #include <vector>
 
+static int serial_evt_handler(SerialPort::SerialPortEvent evt)
+{
+    char buf[128];
+    int cnt;
+    cnt = evt.instance->read(  (uint8_t*)buf , sizeof(buf) - 1  );
+    buf[ cnt ] = '\0';
+    std::cout<<buf;
+    return 0;
+}
+
 int main()
 {
     std::vector<SerialPort::SerialPortInfo> _list = SerialPort::getSerialPortList();
+    char* t = "HelloWorld!\r\n";
 
     for( const auto& portInfo : _list )
     {
@@ -13,22 +24,14 @@ int main()
     }
 
     SerialPort serialPort;
+    serialPort.registerEventHandler( serial_evt_handler , NULL );
     serialPort.connect(8 , 921600);
-
-    char buf[128];
-    int cnt;
 
     while(1)
     {
-        cnt = serialPort.read( (uint8_t*)buf , sizeof(buf) - 1 );
-        if( cnt > 0 )
-        {
-            buf[cnt] = '\0';
-            std::cout<<buf;
-        }
+        serialPort.write( (uint8_t*)t , strlen(t) );
+        Sleep(1000);
     }
-
-    while(1);
     
     return 0;
 }

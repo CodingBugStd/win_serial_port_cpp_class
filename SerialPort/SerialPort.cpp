@@ -26,15 +26,29 @@ SerialPort::SerialPort()
     hSerial = INVALID_HANDLE_VALUE;
     dcbSerialParams = {0};
     _recieveThread = NULL;
+    // _callbackThread = NULL;
 }
+
+// void SerialPort::_callbackThreadImpl()
+// {
+//     while(1)
+//     {
+//         _evtList.size() != 0;
+//         _eventHandler(*_evtList.begin());
+//         // _evtList.
+//     }
+// }
 
 void SerialPort::_recieveThreadImpl()
 {
     SerialPortEvent _evt;
-    char readBuffer[1024];
+    char readBuffer[256];
     // uint16_t readBufferUse = 0;
     // int forceCopyFlag = 0;  //多次尝试上锁未成功，直接阻塞式上锁标志位
     // int tryUnlockCnt = 0;
+
+    _evt.instance = this;
+    _evt.user_ctx = _eventHandlerUserCtx;
 
     while(1)
     {
@@ -48,8 +62,7 @@ void SerialPort::_recieveThreadImpl()
             if( _eventHandler != NULL )
             {
                 _evt.code = DISCONNET;
-                _evt.instance = this;
-                _evt.user_ctx = this->_eventHandlerUserCtx;
+                // _evtList.push_back( _evt );
                 _eventHandler( _evt );
             }
 
@@ -59,51 +72,25 @@ void SerialPort::_recieveThreadImpl()
         //载入异步接收缓冲区
         if( bytesRead > 0 )
         {
-            //内部缓冲区长度累加
-            // readBufferUse += bytesRead;
-
-            // if( _receiveBufLock->try_lock() )
-            // {
                 _receiveBufLock->lock();
 
-                if( _receiveLen  < sizeof( _receiveBuf ) )
+                if( _receiveLen + bytesRead  < sizeof( _receiveBuf ) )
                 {
                     memcpy( _receiveBuf + _receiveLen , readBuffer , bytesRead );
                     _receiveLen += bytesRead;
                 }
-                // readBufferUse = 0;
-                // tryUnlockCnt = 0;
 
                 _receiveBufLock->unlock();
-            // }
-            // else
-            // {
-            //     tryUnlockCnt++;
-            //     if( tryUnlockCnt == 3 ){
-            //         tryUnlockCnt = 0;
-            //         forceCopyFlag = 1;
-            //     }
-            // }
-
-            //强制将内部接收缓存阻塞式塞入实例中的接收缓存
-            //可能会导致等锁丢包
-            // if( forceCopyFlag )
-            // {
-            //     _receiveBufLock->unlock();
-
-            //     if( _receiveLen + readBufferUse < sizeof( _receiveBuf ) )
-            //     {
-            //         memcpy( _receiveBuf + _receiveLen , readBuffer , readBufferUse );
-            //         _receiveLen += bytesRead;
-            //     }
-            //     readBufferUse = 0;
-
-            //     _receiveBufLock->unlock();
-
-            //     forceCopyFlag = 0;
-
-            // }
+                
+                //异步回调
+                if( _eventHandler != NULL )
+                {
+                    _evt.code = RECEIVE;
+                    // _evtList.push_back( _evt );
+                    _eventHandler( _evt );
+                }
         }
+
     }
 }
 
@@ -211,7 +198,17 @@ bool SerialPort::connect( SerialPortInfo& info , SerialConnectCfg& cfg )
 
 bool SerialPort::write(uint8_t*dat , size_t size)
 {
-
+    if( !isConnected() )
+    {   
+        return false;
+    }
+    DWORD bytesWritten;
+    if (!WriteFile(hSerial, dat, size , &bytesWritten, NULL)) {
+        CloseHandle(hSerial);
+        hSerial = INVALID_HANDLE_VALUE;
+        return false;
+    }
+    return true;
 }
     
 bool SerialPort::_connect()
@@ -262,15 +259,15 @@ bool SerialPort::_connect()
 
 size_t SerialPort::receiveLen()
 {
-
+    return _receiveLen;
 }
 
 int SerialPort::read(uint8_t*buf , size_t size)
 {
-    // if( !isConnected() )
-    // {
-    //     return -1;
-    // }
+    if( !isConnected() )
+    {
+        return -1;
+    }
     int cnt = size > _receiveLen ? _receiveLen : size ;
     _receiveBufLock->lock();
     memcpy( buf , _receiveBuf , cnt );
@@ -283,7 +280,7 @@ int SerialPort::read(uint8_t*buf , size_t size)
 
 SerialPort::SerialConnectCfg SerialPort::connectedSerialPortCfg()
 {
-
+    return _serialCfg;
 }
 
 bool SerialPort::disconnect()
@@ -293,12 +290,12 @@ bool SerialPort::disconnect()
 
 bool SerialPort::isConnected()
 {
-    return false;
+    return hSerial == INVALID_HANDLE_VALUE ? false : true ;
 }
 
 SerialPort::SerialPortInfo SerialPort::connectedSerialPortInfo()
 {
-    SerialPort::SerialPortInfo  info;
+    return _serialInfo;
 }
 
 std::vector<SerialPort::SerialPortInfo> SerialPort::getSerialPortList()
