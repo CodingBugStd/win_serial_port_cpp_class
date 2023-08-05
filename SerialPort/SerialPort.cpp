@@ -23,72 +23,71 @@ SerialPort::SerialPort()
     _eventHandler = NULL;
     _eventHandlerUserCtx = NULL;
 
-    hSerial = INVALID_HANDLE_VALUE;
-    dcbSerialParams = {0};
+    _hSerial = INVALID_HANDLE_VALUE;
+    _hSerialReadLock = new std::mutex;
+    _hSerialWriteLock = new std::mutex;
+    _hSerialReadLock->unlock();
+    _hSerialWriteLock->unlock();
+    _dcbSerialParams = {0};
     _recieveThread = NULL;
-    // _callbackThread = NULL;
 }
-
-// void SerialPort::_callbackThreadImpl()
-// {
-//     while(1)
-//     {
-//         _evtList.size() != 0;
-//         _eventHandler(*_evtList.begin());
-//         // _evtList.
-//     }
-// }
 
 void SerialPort::_recieveThreadImpl()
 {
     SerialPortEvent _evt;
     char readBuffer[256];
-    // uint16_t readBufferUse = 0;
-    // int forceCopyFlag = 0;  //多次尝试上锁未成功，直接阻塞式上锁标志位
-    // int tryUnlockCnt = 0;
 
     _evt.instance = this;
     _evt.user_ctx = _eventHandlerUserCtx;
 
+    _evt.code = CONNECT;
+    _callback(_evt);
+
     while(1)
     {
         DWORD bytesRead;
-        if (!ReadFile(hSerial, readBuffer , sizeof(readBuffer) , &bytesRead, NULL)) {
-            std::cerr << "Error in ReadFile." << std::endl;
-            CloseHandle(hSerial);
-            hSerial = INVALID_HANDLE_VALUE;
-
+        _hSerialReadLock->lock();
+        
+        if( _hSerial == INVALID_HANDLE_VALUE )
+        {
+            _hSerialReadLock->unlock();
             //异步回调
-            if( _eventHandler != NULL )
-            {
-                _evt.code = DISCONNET;
-                // _evtList.push_back( _evt );
-                _eventHandler( _evt );
-            }
-
+            _evt.code = DISCONNECT;
+            _callback(_evt);
             return;
         }
+
+        if (!ReadFile(_hSerial, readBuffer , sizeof(readBuffer) , &bytesRead, NULL)) {
+            std::cerr << "Error in ReadFile." << std::endl;
+            CloseHandle(_hSerial);
+            _hSerial = INVALID_HANDLE_VALUE;
+
+            //异步回调
+            _evt.code = DISCONNECT;
+            _callback(_evt);
+
+            _hSerialReadLock->unlock();
+            return;
+        }
+        _hSerialReadLock->unlock();
 
         //载入异步接收缓冲区
         if( bytesRead > 0 )
         {
-                _receiveBufLock->lock();
+            _receiveBufLock->lock();
 
-                if( _receiveLen + bytesRead  < sizeof( _receiveBuf ) )
-                {
-                    memcpy( _receiveBuf + _receiveLen , readBuffer , bytesRead );
-                    _receiveLen += bytesRead;
-                }
+            //载入缓冲区
+            if( _receiveLen + bytesRead  < sizeof( _receiveBuf ) )
+            {
+                memcpy( _receiveBuf + _receiveLen , readBuffer , bytesRead );
+                _receiveLen += bytesRead;
+            }
 
-                _receiveBufLock->unlock();
-                
-                //异步回调
-                if( _eventHandler != NULL )
-                {
-                    _evt.code = RECEIVE;
-                    // _evtList.push_back( _evt );
-                    _eventHandler( _evt );
-                }
+            _receiveBufLock->unlock();
+            
+            //异步回调
+            _evt.code = RECEIVE;
+            _callback(_evt);
         }
 
     }
@@ -96,7 +95,11 @@ void SerialPort::_recieveThreadImpl()
 
 SerialPort::~SerialPort()
 {
-    
+    //回收接收线程
+    disconnect();
+    delete _receiveBufLock;
+    delete _hSerialReadLock;
+    delete _hSerialWriteLock;
 }
 
 void SerialPort::_refreshSerialPortInfoList()
@@ -203,38 +206,53 @@ bool SerialPort::write(uint8_t*dat , size_t size)
         return false;
     }
     DWORD bytesWritten;
-    if (!WriteFile(hSerial, dat, size , &bytesWritten, NULL)) {
-        CloseHandle(hSerial);
-        hSerial = INVALID_HANDLE_VALUE;
+    if (!WriteFile(_hSerial, dat, size , &bytesWritten, NULL)) {
+        CloseHandle(_hSerial);
+        _hSerial = INVALID_HANDLE_VALUE;
         return false;
     }
     return true;
 }
     
+void SerialPort::_callback(SerialPortEvent& evt)
+{
+    if( _eventHandler != NULL )
+    {
+        _eventHandler( evt );
+    }
+}
+
 bool SerialPort::_connect()
 {
-    hSerial = CreateFile( (LPCSTR)_serialInfo.portName.c_str() , GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hSerial == INVALID_HANDLE_VALUE) {
+    _hSerialReadLock->lock();
+    _hSerialWriteLock->lock();
+
+    _hSerial = CreateFile( (LPCSTR)_serialInfo.portName.c_str() , GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (_hSerial == INVALID_HANDLE_VALUE) {
         std::cerr << "Failed to open serial port." << std::endl;
         return false;
     }
 
-    dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-    if (!GetCommState(hSerial, &dcbSerialParams)) {
+    _dcbSerialParams.DCBlength = sizeof(_dcbSerialParams);
+    if (!GetCommState(_hSerial, &_dcbSerialParams)) {
         std::cerr << "Error in GetCommState." << std::endl;
-        CloseHandle(hSerial);
+        CloseHandle(_hSerial);
+        _hSerialReadLock->unlock();
+        _hSerialWriteLock->unlock();
         return false;
     }
 
-    dcbSerialParams.BaudRate = _serialCfg.bound;  // 设置波特率
-    dcbSerialParams.ByteSize = _serialCfg.dataBit;         // 数据位
-    dcbSerialParams.StopBits = _serialCfg.stopBit - 1 ; //见 ONESTOPBIT 宏
-    dcbSerialParams.Parity = NOPARITY;    // 无奇偶校验
+    _dcbSerialParams.BaudRate = _serialCfg.bound;  // 设置波特率
+    _dcbSerialParams.ByteSize = _serialCfg.dataBit;         // 数据位
+    _dcbSerialParams.StopBits = _serialCfg.stopBit - 1 ; //见 ONESTOPBIT 宏
+    _dcbSerialParams.Parity = NOPARITY;    // 无奇偶校验
 
-    if (!SetCommState(hSerial, &dcbSerialParams)) {
+    if (!SetCommState(_hSerial, &_dcbSerialParams)) {
         std::cerr << "Error in SetCommState." << std::endl;
-        CloseHandle(hSerial);
-        hSerial == INVALID_HANDLE_VALUE;
+        CloseHandle(_hSerial);
+        _hSerial == INVALID_HANDLE_VALUE;
+        _hSerialReadLock->unlock();
+        _hSerialWriteLock->unlock();
         return false;
     }
 
@@ -245,14 +263,20 @@ bool SerialPort::_connect()
     timeouts.WriteTotalTimeoutConstant = 5;    // 写入总超时时间（以毫秒为单位）
     timeouts.WriteTotalTimeoutMultiplier = 1;     // 写入总超时时间乘数
 
-    if (!SetCommTimeouts(hSerial, &timeouts)) {
+    if (!SetCommTimeouts(_hSerial, &timeouts)) {
         std::cerr << "Failed to set serial port timeouts." << std::endl;
-        CloseHandle(hSerial);
+        CloseHandle(_hSerial);
+        _hSerialReadLock->unlock();
+        _hSerialWriteLock->unlock();
         return false;
     }
 
     //建立异步接收、回调函数线程
     _recieveThread = new std::thread(&SerialPort::_recieveThreadImpl , this );
+    _recieveThread->detach();   //分离子线程
+
+    _hSerialReadLock->unlock();
+    _hSerialWriteLock->unlock();
 
     return true;
 }
@@ -262,6 +286,7 @@ size_t SerialPort::receiveLen()
     return _receiveLen;
 }
 
+//没有操作_hSerial成员，无需对_hSeriaReadLock上锁
 int SerialPort::read(uint8_t*buf , size_t size)
 {
     if( !isConnected() )
@@ -285,12 +310,25 @@ SerialPort::SerialConnectCfg SerialPort::connectedSerialPortCfg()
 
 bool SerialPort::disconnect()
 {
-    return false;
+    if( isConnected() )
+    {
+        _hSerialReadLock->lock();
+        _hSerialWriteLock->lock();
+        _receiveBufLock->lock();
+
+        CloseHandle(_hSerial);
+        _hSerial = INVALID_HANDLE_VALUE;
+
+        _hSerialReadLock->unlock();
+        _hSerialWriteLock->unlock();
+        _receiveBufLock->unlock();
+    }
+    return true;
 }
 
 bool SerialPort::isConnected()
 {
-    return hSerial == INVALID_HANDLE_VALUE ? false : true ;
+    return _hSerial == INVALID_HANDLE_VALUE ? false : true ;
 }
 
 SerialPort::SerialPortInfo SerialPort::connectedSerialPortInfo()

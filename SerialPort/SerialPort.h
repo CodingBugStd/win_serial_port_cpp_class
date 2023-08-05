@@ -32,7 +32,7 @@ public:
 
     typedef enum{
         RECEIVE = 0,
-        DISCONNET = 1,
+        CONNECT = 1,
         DISCONNECT = 2
     }SerialPortEventCode;
 
@@ -94,13 +94,13 @@ private:
     size_t  _receiveLen;
     std::mutex*  _receiveBufLock;
     bool _connect();
+    void _callback(SerialPortEvent& evt);
 
-    HANDLE hSerial;
-    DCB dcbSerialParams;
+    HANDLE _hSerial;
+    std::mutex* _hSerialReadLock;
+    std::mutex* _hSerialWriteLock;
+    DCB _dcbSerialParams;
     std::thread* _recieveThread;
-    // std::thread* _callbackThread;
-    // std::vector<SerialPortEvent> _evtList;
-    // void _callbackThreadImpl();
     void _recieveThreadImpl();
 
     static void _refreshSerialPortInfoList();

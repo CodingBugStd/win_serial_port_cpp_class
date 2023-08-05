@@ -23,21 +23,25 @@ int main()
         std::cout<<portInfo.portName<<std::endl;
     }
 
-    SerialPort serialPort;
-    serialPort.registerEventHandler( serial_evt_handler , NULL );
-    serialPort.connect(8 , 921600);
+    SerialPort* serialPort = new SerialPort;
+    serialPort->registerEventHandler( serial_evt_handler , NULL );
+    serialPort->connect("COM2" , 921600);
 
     while(1)
     {
-        serialPort.write( (uint8_t*)t , strlen(t) );
+        static uint16_t timeout = 0;
+        timeout++;
+        serialPort->write( (uint8_t*)t , strlen(t) );
         Sleep(1000);
     }
-    
+
+    while(1);
+
     return 0;
 }
 
 
-// #include <Windows.h>
+// #include <Windows.h
 // #include <iostream>
 
 // int main() {
