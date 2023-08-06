@@ -227,7 +227,10 @@ bool SerialPort::_connect()
     _hSerialReadLock->lock();
     _hSerialWriteLock->lock();
 
-    _hSerial = CreateFile( (LPCSTR)_serialInfo.portName.c_str() , GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    std::string _fileName = "\\\\.\\";  //要访问的设备名    当串口号大于9时需要增加这个前缀，小于9时也可以加
+    _fileName.append( _serialInfo.portName.data() );
+
+    _hSerial = CreateFile( (LPCSTR)_fileName.c_str() , GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (_hSerial == INVALID_HANDLE_VALUE) {
         std::cerr << "Failed to open serial port." << std::endl;
         return false;
