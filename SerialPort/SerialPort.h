@@ -86,21 +86,21 @@ public:
     static std::vector<SerialPortInfo> getSerialPortList();
 
 private:
-    SerialPortInfo      _serialInfo;
-    SerialConnectCfg    _serialCfg;
-    int (*_eventHandler)(SerialPortEvent);
-    void*   _eventHandlerUserCtx;
-    uint8_t _receiveBuf[2048];
-    size_t  _receiveLen;
-    std::mutex*  _receiveBufLock;
-    bool _connect();
-    void _callback(SerialPortEvent& evt);
+    SerialPortInfo      _serialInfo;            //当前操作的串口信息
+    SerialConnectCfg    _serialCfg;             //当前操作的串口的配置
+    int (*_eventHandler)(SerialPortEvent);      //用户注册的串口事件回调函数
+    void*   _eventHandlerUserCtx;               //用户需要传入事件回调的上下文
+    uint8_t _receiveBuf[2048];                  //接收缓存
+    size_t  _receiveLen;                        //当前接收缓存未被读取的长度
+    std::mutex*  _receiveBufLock;               //接收缓存锁
+    bool _connect();                            //根据_serialInfo将实例连接到指定串口,创建接收线程
+    void _callback(SerialPortEvent& evt);       //用户事件回调函数实现
 
-    HANDLE _hSerial;
-    std::mutex* _hSerialReadLock;
-    std::mutex* _hSerialWriteLock;
-    DCB _dcbSerialParams;
-    std::thread* _recieveThread;
+    HANDLE _hSerial;                        //win api  串口句柄
+    std::mutex* _hSerialReadLock;           //_hSerial读锁
+    std::mutex* _hSerialWriteLock;          //_hSerial写锁
+    DCB _dcbSerialParams;                   //用于设置win api的一些参数
+    std::thread* _recieveThread;            //接收线程
     void _recieveThreadImpl();
 
     static void _refreshSerialPortInfoList();
