@@ -106,6 +106,9 @@ void SerialPort::_refreshSerialPortInfoList()
 {
     HKEY hKey;
     SerialPortInfo  info;
+
+    _serialPortInfoList.clear();
+
     LONG res = RegOpenKeyEx(HKEY_LOCAL_MACHINE, _T("HARDWARE\\DEVICEMAP\\SERIALCOMM"), 0, KEY_READ, &hKey);
     if (res != ERROR_SUCCESS) {
         _serialPortInfoList.clear();
