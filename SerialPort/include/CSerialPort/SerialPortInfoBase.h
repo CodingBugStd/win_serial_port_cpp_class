@@ -15,10 +15,7 @@
 
 #include <vector>
 
-namespace itas109
-{
 struct SerialPortInfo; // Forward Declaration
-}
 
 /**
  * @brief the CSerialPortInfo Base class 串口信息辅助类基类
@@ -42,6 +39,6 @@ public:
      * @brief availablePortInfos 获取串口信息列表
      * @return return available port infolist 返回可用串口名称列表
      */
-    static std::vector<itas109::SerialPortInfo> availablePortInfos(void);
+    static std::vector<SerialPortInfo> availablePortInfos(void);
 };
 #endif //__CSERIALPORTINFOBASE_H__

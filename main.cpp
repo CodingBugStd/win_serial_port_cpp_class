@@ -12,5 +12,6 @@ static int connect_port(void)
 
 int main(void)
 {
+    auto portList = CSerialPortInfo::availablePortInfos();
     return 0;
 }

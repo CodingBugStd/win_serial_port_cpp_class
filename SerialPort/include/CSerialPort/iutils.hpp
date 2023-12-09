@@ -10,8 +10,6 @@
 #ifndef __I_UTILS_HPP__
 #define __I_UTILS_HPP__
 
-namespace itas109
-{
 /**
  * @brief utils class 工具类
  *
@@ -78,5 +76,4 @@ public:
         return (dest);
     }
 };
-} // namespace itas109
 #endif // __I_UTILS_HPP__

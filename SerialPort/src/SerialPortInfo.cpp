@@ -12,13 +12,11 @@
 #define CSERIALPORTBASE
 #endif // I_OS_WIN
 
-using namespace itas109;
-
 CSerialPortInfo::CSerialPortInfo() {}
 
 CSerialPortInfo::~CSerialPortInfo() {}
 
-std::vector<itas109::SerialPortInfo> CSerialPortInfo::availablePortInfos()
+std::vector<SerialPortInfo> CSerialPortInfo::availablePortInfos()
 {
     return CSERIALPORTINFOBASE::availablePortInfos();
 }

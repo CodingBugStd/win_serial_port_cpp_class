@@ -38,30 +38,30 @@ struct termios2
 
 CSerialPortUnixBase::CSerialPortUnixBase()
     : fd(-1)
-    , m_baudRate(itas109::BaudRate9600)
-    , m_parity(itas109::ParityNone)
-    , m_dataBits(itas109::DataBits8)
-    , m_stopbits(itas109::StopOne)
-    , m_flowControl(itas109::FlowNone)
+    , m_baudRate(BaudRate9600)
+    , m_parity(ParityNone)
+    , m_dataBits(DataBits8)
+    , m_stopbits(StopOne)
+    , m_flowControl(FlowNone)
     , m_readBufferSize(4096)
     , m_isThreadRunning(false)
-    , p_buffer(new itas109::RingBuffer<char>(m_readBufferSize))
+    , p_buffer(new RingBuffer<char>(m_readBufferSize))
 {
-    itas109::IUtils::strncpy(m_portName, "", 1);
+    IUtils::strncpy(m_portName, "", 1);
 }
 
 CSerialPortUnixBase::CSerialPortUnixBase(const char *portName)
     : fd(-1)
-    , m_baudRate(itas109::BaudRate9600)
-    , m_parity(itas109::ParityNone)
-    , m_dataBits(itas109::DataBits8)
-    , m_stopbits(itas109::StopOne)
-    , m_flowControl(itas109::FlowNone)
+    , m_baudRate(BaudRate9600)
+    , m_parity(ParityNone)
+    , m_dataBits(DataBits8)
+    , m_stopbits(StopOne)
+    , m_flowControl(FlowNone)
     , m_readBufferSize(4096)
     , m_isThreadRunning(false)
-    , p_buffer(new itas109::RingBuffer<char>(m_readBufferSize))
+    , p_buffer(new RingBuffer<char>(m_readBufferSize))
 {
-    itas109::IUtils::strncpy(m_portName, portName, 256);
+    IUtils::strncpy(m_portName, portName, 256);
 }
 
 CSerialPortUnixBase::~CSerialPortUnixBase()
@@ -74,14 +74,14 @@ CSerialPortUnixBase::~CSerialPortUnixBase()
 }
 
 void CSerialPortUnixBase::init(const char *portName,
-                               int baudRate /*= itas109::BaudRate::BaudRate9600*/,
-                               itas109::Parity parity /*= itas109::Parity::ParityNone*/,
-                               itas109::DataBits dataBits /*= itas109::DataBits::DataBits8*/,
-                               itas109::StopBits stopbits /*= itas109::StopBits::StopOne*/,
-                               itas109::FlowControl flowControl /*= itas109::FlowControl::FlowNone*/,
+                               int baudRate /*= BaudRate::BaudRate9600*/,
+                               Parity parity /*= Parity::ParityNone*/,
+                               DataBits dataBits /*= DataBits::DataBits8*/,
+                               StopBits stopbits /*= StopBits::StopOne*/,
+                               FlowControl flowControl /*= FlowControl::FlowNone*/,
                                unsigned int readBufferSize /*= 4096*/)
 {
-    itas109::IUtils::strncpy(m_portName, portName, 256); // portName;//串口 /dev/ttySn, USB /dev/ttyUSBn
+    IUtils::strncpy(m_portName, portName, 256); // portName;//串口 /dev/ttySn, USB /dev/ttyUSBn
     m_baudRate = baudRate;
     m_parity = parity;
     m_dataBits = dataBits;
@@ -94,10 +94,10 @@ void CSerialPortUnixBase::init(const char *portName,
         delete p_buffer;
         p_buffer = NULL;
     }
-    p_buffer = new itas109::RingBuffer<char>(m_readBufferSize);
+    p_buffer = new RingBuffer<char>(m_readBufferSize);
 }
 
-int CSerialPortUnixBase::uartSet(int fd, int baudRate, itas109::Parity parity, itas109::DataBits dataBits, itas109::StopBits stopbits, itas109::FlowControl flowControl)
+int CSerialPortUnixBase::uartSet(int fd, int baudRate, Parity parity, DataBits dataBits, StopBits stopbits, FlowControl flowControl)
 {
     struct termios options;
 
@@ -122,26 +122,26 @@ int CSerialPortUnixBase::uartSet(int fd, int baudRate, itas109::Parity parity, i
     switch (parity)
     {
         // 无奇偶校验位
-        case itas109::ParityNone:
+        case ParityNone:
             options.c_cflag &= ~PARENB; // PARENB：产生奇偶位，执行奇偶校验
             options.c_cflag &= ~INPCK;  // INPCK：使奇偶校验起作用
             break;
         // 设置奇校验
-        case itas109::ParityOdd:
+        case ParityOdd:
             options.c_cflag |= PARENB; // PARENB：产生奇偶位，执行奇偶校验
             options.c_cflag |= PARODD; // PARODD：若设置则为奇校验,否则为偶校验
             options.c_cflag |= INPCK;  // INPCK：使奇偶校验起作用
             options.c_cflag |= ISTRIP; // ISTRIP：若设置则有效输入数字被剥离7个字节，否则保留全部8位
             break;
         // 设置偶校验
-        case itas109::ParityEven:
+        case ParityEven:
             options.c_cflag |= PARENB;  // PARENB：产生奇偶位，执行奇偶校验
             options.c_cflag &= ~PARODD; // PARODD：若设置则为奇校验,否则为偶校验
             options.c_cflag |= INPCK;   // INPCK：使奇偶校验起作用
             options.c_cflag |= ISTRIP;  // ISTRIP：若设置则有效输入数字被剥离7个字节，否则保留全部8位
             break;
         // 设置0校验
-        case itas109::ParitySpace:
+        case ParitySpace:
             options.c_cflag &= ~PARENB; // PARENB：产生奇偶位，执行奇偶校验
             options.c_cflag &= ~CSTOPB; // CSTOPB：使用两位停止位
             break;
@@ -153,19 +153,19 @@ int CSerialPortUnixBase::uartSet(int fd, int baudRate, itas109::Parity parity, i
     // 设置数据位
     switch (dataBits)
     {
-        case itas109::DataBits5:
+        case DataBits5:
             options.c_cflag &= ~CSIZE; // 屏蔽其它标志位
             options.c_cflag |= CS5;
             break;
-        case itas109::DataBits6:
+        case DataBits6:
             options.c_cflag &= ~CSIZE; // 屏蔽其它标志位
             options.c_cflag |= CS6;
             break;
-        case itas109::DataBits7:
+        case DataBits7:
             options.c_cflag &= ~CSIZE; // 屏蔽其它标志位
             options.c_cflag |= CS7;
             break;
-        case itas109::DataBits8:
+        case DataBits8:
             options.c_cflag &= ~CSIZE; // 屏蔽其它标志位
             options.c_cflag |= CS8;
             break;
@@ -177,13 +177,13 @@ int CSerialPortUnixBase::uartSet(int fd, int baudRate, itas109::Parity parity, i
     // 停止位
     switch (stopbits)
     {
-        case itas109::StopOne:
+        case StopOne:
             options.c_cflag &= ~CSTOPB; // CSTOPB：使用两位停止位
             break;
-        case itas109::StopOneAndHalf:
+        case StopOneAndHalf:
             fprintf(stderr, "POSIX does not support 1.5 stop bits\n");
             return -1;
-        case itas109::StopTwo:
+        case StopTwo:
             options.c_cflag |= CSTOPB; // CSTOPB：使用两位停止位
             break;
         default:
@@ -198,13 +198,13 @@ int CSerialPortUnixBase::uartSet(int fd, int baudRate, itas109::Parity parity, i
     // 流控制
     switch (flowControl)
     {
-        case itas109::FlowNone: ///< No flow control 无流控制
+        case FlowNone: ///< No flow control 无流控制
             options.c_cflag &= ~CRTSCTS;
             break;
-        case itas109::FlowHardware: ///< Hardware(RTS / CTS) flow control 硬件流控制
+        case FlowHardware: ///< Hardware(RTS / CTS) flow control 硬件流控制
             options.c_cflag |= CRTSCTS;
             break;
-        case itas109::FlowSoftware: ///< Software(XON / XOFF) flow control 软件流控制
+        case FlowSoftware: ///< Software(XON / XOFF) flow control 软件流控制
             options.c_cflag |= IXON | IXOFF | IXANY;
             break;
         default:
@@ -308,7 +308,7 @@ void *CSerialPortUnixBase::commThreadMonitor(void *pParam)
 #ifdef CSERIALPORT_DEBUG
                         char hexStr[201]; // 100*2 + 1
                         LOG_INFO("write buffer(usedLen %u). len: %d, hex(top100): %s", p_base->p_buffer->getUsedLen(), len,
-                                 itas109::IUtils::charToHexStr(hexStr, data, len > 100 ? 100 : len));
+                                 IUtils::charToHexStr(hexStr, data, len > 100 ? 100 : len));
 #endif
 
                         if (p_base->p_readEvent)
@@ -324,7 +324,7 @@ void *CSerialPortUnixBase::commThreadMonitor(void *pParam)
                                     }
 
                                     LOG_INFO("onReadEvent. portName: %s, readLen: %u", p_base->getPortName(), p_base->p_buffer->getUsedLen());
-                                    p_base->p_timer->startOnce(readIntervalTimeoutMS, p_base->p_readEvent, &itas109::CSerialPortListener::onReadEvent, p_base->getPortName(),
+                                    p_base->p_timer->startOnce(readIntervalTimeoutMS, p_base->p_readEvent, &CSerialPortListener::onReadEvent, p_base->getPortName(),
                                                                p_base->p_buffer->getUsedLen());
                                 }
                             }
@@ -359,7 +359,7 @@ bool CSerialPortUnixBase::startThreadMonitor()
     bool bRet = true;
 
     // start read thread
-    if (0 != itas109::i_thread_create(&m_monitorThread, NULL, commThreadMonitor, (void *)this))
+    if (0 != i_thread_create(&m_monitorThread, NULL, commThreadMonitor, (void *)this))
     {
         bRet = false;
 
@@ -373,17 +373,17 @@ bool CSerialPortUnixBase::stopThreadMonitor()
 {
     m_isThreadRunning = false;
 
-    itas109::i_thread_join(m_monitorThread);
+    i_thread_join(m_monitorThread);
 
     return true;
 }
 
 bool CSerialPortUnixBase::openPort()
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
 
     LOG_INFO("portName: %s, baudRate: %d, dataBit: %d, parity: %d, stopBit: %d, flowControl: %d, mode: %s, readBufferSize:%u(%u), readIntervalTimeoutMS: %u, minByteReadNotify: %u",
-             m_portName, m_baudRate, m_dataBits, m_parity, m_stopbits, m_flowControl, m_operateMode == itas109::AsynchronousOperate ? "async" : "sync", m_readBufferSize,
+             m_portName, m_baudRate, m_dataBits, m_parity, m_stopbits, m_flowControl, m_operateMode == AsynchronousOperate ? "async" : "sync", m_readBufferSize,
              p_buffer->getBufferSize(), m_readIntervalTimeoutMS, m_minByteReadNotify);
 
     bool bRet = false;
@@ -403,7 +403,7 @@ bool CSerialPortUnixBase::openPort()
                 fprintf(stderr, "uart set failed\n");
 
                 bRet = false;
-                m_lastError = itas109::/*SerialPortError::*/ ErrorInvalidParam;
+                m_lastError = /*SerialPortError::*/ ErrorInvalidParam;
             }
             else
             {
@@ -413,14 +413,14 @@ bool CSerialPortUnixBase::openPort()
                 if (!bRet)
                 {
                     m_isThreadRunning = false;
-                    m_lastError = itas109::/*SerialPortError::*/ ErrorInner;
+                    m_lastError = /*SerialPortError::*/ ErrorInner;
                 }
             }
         }
         else
         {
             bRet = false;
-            m_lastError = itas109::/*SerialPortError::*/ ErrorInner;
+            m_lastError = /*SerialPortError::*/ ErrorInner;
         }
     }
     else
@@ -432,15 +432,15 @@ bool CSerialPortUnixBase::openPort()
 
         if (EACCES == errno)
         {
-            m_lastError = itas109::/*SerialPortError::*/ ErrorAccessDenied;
+            m_lastError = /*SerialPortError::*/ ErrorAccessDenied;
         }
         else if (ENOENT == errno)
         {
-            m_lastError = itas109::/*SerialPortError::*/ ErrorNotExist;
+            m_lastError = /*SerialPortError::*/ ErrorNotExist;
         }
         else
         {
-            m_lastError = itas109::/*SerialPortError::*/ ErrorOpenFailed;
+            m_lastError = /*SerialPortError::*/ ErrorOpenFailed;
         }
 
         bRet = false;
@@ -477,7 +477,7 @@ unsigned int CSerialPortUnixBase::getReadBufferUsedLen() const
 {
     unsigned int usedLen = 0;
 
-    if (m_operateMode == itas109::/*OperateMode::*/ AsynchronousOperate)
+    if (m_operateMode == /*OperateMode::*/ AsynchronousOperate)
     {
         usedLen = p_buffer->getUsedLen();
     }
@@ -494,7 +494,7 @@ unsigned int CSerialPortUnixBase::getReadBufferUsedLen() const
 
 int CSerialPortUnixBase::readDataUnix(void *data, int size)
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
 
     int iRet = -1;
 
@@ -504,7 +504,7 @@ int CSerialPortUnixBase::readDataUnix(void *data, int size)
     }
     else
     {
-        m_lastError = itas109::/*SerialPortError::*/ ErrorNotOpen;
+        m_lastError = /*SerialPortError::*/ ErrorNotOpen;
         iRet = -1;
     }
 
@@ -513,7 +513,7 @@ int CSerialPortUnixBase::readDataUnix(void *data, int size)
 
 int CSerialPortUnixBase::readData(void *data, int size)
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
 
     if (size <= 0)
     {
@@ -524,7 +524,7 @@ int CSerialPortUnixBase::readData(void *data, int size)
 
     if (isOpen())
     {
-        if (m_operateMode == itas109::/*OperateMode::*/ AsynchronousOperate)
+        if (m_operateMode == /*OperateMode::*/ AsynchronousOperate)
         {
             iRet = p_buffer->read((char *)data, size);
         }
@@ -535,13 +535,13 @@ int CSerialPortUnixBase::readData(void *data, int size)
     }
     else
     {
-        m_lastError = itas109::/*SerialPortError::*/ ErrorNotOpen;
+        m_lastError = /*SerialPortError::*/ ErrorNotOpen;
         iRet = -1;
     }
 
 #ifdef CSERIALPORT_DEBUG
     char hexStr[201]; // 100*2 + 1
-    LOG_INFO("read. len: %d, hex(top100): %s", iRet, itas109::IUtils::charToHexStr(hexStr, (const char *)data, iRet > 100 ? 100 : iRet));
+    LOG_INFO("read. len: %d, hex(top100): %s", iRet, IUtils::charToHexStr(hexStr, (const char *)data, iRet > 100 ? 100 : iRet));
 #endif
 
     return iRet;
@@ -554,18 +554,18 @@ int CSerialPortUnixBase::readAllData(void *data)
 
 int CSerialPortUnixBase::readLineData(void *data, int size)
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
 
     int iRet = -1;
 
     if (isOpen())
     {
-        m_lastError = itas109::/*SerialPortError::*/ ErrorNotImplemented;
+        m_lastError = /*SerialPortError::*/ ErrorNotImplemented;
         iRet = -1;
     }
     else
     {
-        m_lastError = itas109::/*SerialPortError::*/ ErrorNotOpen;
+        m_lastError = /*SerialPortError::*/ ErrorNotOpen;
         iRet = -1;
     }
 
@@ -574,7 +574,7 @@ int CSerialPortUnixBase::readLineData(void *data, int size)
 
 int CSerialPortUnixBase::writeData(const void *data, int size)
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
 
     int iRet = -1;
 
@@ -585,13 +585,13 @@ int CSerialPortUnixBase::writeData(const void *data, int size)
     }
     else
     {
-        m_lastError = itas109::/*SerialPortError::*/ ErrorNotOpen;
+        m_lastError = /*SerialPortError::*/ ErrorNotOpen;
         iRet = -1;
     }
 
 #ifdef CSERIALPORT_DEBUG
     char hexStr[201]; // 100*2 + 1
-    LOG_INFO("write. len: %d, hex(top100): %s", size, itas109::IUtils::charToHexStr(hexStr, (const char *)data, size > 100 ? 100 : size));
+    LOG_INFO("write. len: %d, hex(top100): %s", size, IUtils::charToHexStr(hexStr, (const char *)data, size > 100 ? 100 : size));
 #endif
 
     return iRet;
@@ -614,7 +614,7 @@ void CSerialPortUnixBase::setMinByteReadNotify(unsigned int minByteReadNotify)
 
 bool CSerialPortUnixBase::flushBuffers()
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
 
     if (isOpen())
     {
@@ -628,7 +628,7 @@ bool CSerialPortUnixBase::flushBuffers()
 
 bool CSerialPortUnixBase::flushReadBuffers()
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
 
     if (isOpen())
     {
@@ -642,7 +642,7 @@ bool CSerialPortUnixBase::flushReadBuffers()
 
 bool CSerialPortUnixBase::flushWriteBuffers()
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
 
     if (isOpen())
     {
@@ -656,7 +656,7 @@ bool CSerialPortUnixBase::flushWriteBuffers()
 
 void CSerialPortUnixBase::setPortName(const char *portName)
 {
-    itas109::IUtils::strncpy(m_portName, portName, 256);
+    IUtils::strncpy(m_portName, portName, 256);
 }
 
 const char *CSerialPortUnixBase::getPortName() const
@@ -674,42 +674,42 @@ int CSerialPortUnixBase::getBaudRate() const
     return m_baudRate;
 }
 
-void CSerialPortUnixBase::setParity(itas109::Parity parity)
+void CSerialPortUnixBase::setParity(Parity parity)
 {
     m_parity = parity;
 }
 
-itas109::Parity CSerialPortUnixBase::getParity() const
+Parity CSerialPortUnixBase::getParity() const
 {
     return m_parity;
 }
 
-void CSerialPortUnixBase::setDataBits(itas109::DataBits dataBits)
+void CSerialPortUnixBase::setDataBits(DataBits dataBits)
 {
     m_dataBits = dataBits;
 }
 
-itas109::DataBits CSerialPortUnixBase::getDataBits() const
+DataBits CSerialPortUnixBase::getDataBits() const
 {
     return m_dataBits;
 }
 
-void CSerialPortUnixBase::setStopBits(itas109::StopBits stopbits)
+void CSerialPortUnixBase::setStopBits(StopBits stopbits)
 {
     m_stopbits = stopbits;
 }
 
-itas109::StopBits CSerialPortUnixBase::getStopBits() const
+StopBits CSerialPortUnixBase::getStopBits() const
 {
     return m_stopbits;
 }
 
-void CSerialPortUnixBase::setFlowControl(itas109::FlowControl flowControl)
+void CSerialPortUnixBase::setFlowControl(FlowControl flowControl)
 {
     m_flowControl = flowControl;
 }
 
-itas109::FlowControl CSerialPortUnixBase::getFlowControl() const
+FlowControl CSerialPortUnixBase::getFlowControl() const
 {
     return m_flowControl;
 }
@@ -726,7 +726,7 @@ unsigned int CSerialPortUnixBase::getReadBufferSize() const
 
 void CSerialPortUnixBase::setDtr(bool set /*= true*/)
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
     if (isOpen())
     {
         int status = TIOCM_DTR;
@@ -739,7 +739,7 @@ void CSerialPortUnixBase::setDtr(bool set /*= true*/)
 
 void CSerialPortUnixBase::setRts(bool set /*= true*/)
 {
-    itas109::IAutoLock lock(p_mutex);
+    IAutoLock lock(p_mutex);
     if (isOpen())
     {
         int status = TIOCM_RTS;

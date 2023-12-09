@@ -13,8 +13,6 @@
 #ifndef __CSERIALPORT_LISTENER_H__
 #define __CSERIALPORT_LISTENER_H__
 
-namespace itas109
-{
 /**
  * @brief the CSerialPortListener class 串口事件监听类
  *
@@ -35,5 +33,4 @@ public:
      */
     virtual void onReadEvent(const char *portName, unsigned int readBufferLen) = 0;
 };
-} // namespace itas109
 #endif //__CSERIALPORT_LISTENER_H__

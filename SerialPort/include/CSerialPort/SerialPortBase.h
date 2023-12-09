@@ -15,12 +15,9 @@
 
 #include "SerialPort_global.h"
 
-namespace itas109
-{
 class IMutex;
 class CSerialPortListener;
 template <class T> class ITimer;
-} // namespace itas109
 
 /**
  * @brief the CSerialPort Base class 串口基类
@@ -59,18 +56,18 @@ public:
      */
     virtual void init(const char *portName,
                       int baudRate,
-                      itas109::Parity parity,
-                      itas109::DataBits dataBits,
-                      itas109::StopBits stopbits,
-                      itas109::FlowControl flowControl,
+                      Parity parity,
+                      DataBits dataBits,
+                      StopBits stopbits,
+                      FlowControl flowControl,
                       unsigned int readBufferSize) = 0;
 
     /**
      * @brief Set the Operate Mode object 设置串口操作模式
      *
-     * @param operateMode [in] the operate mode 串口操作模式 {@link itas109::OperateMode}
+     * @param operateMode [in] the operate mode 串口操作模式 {@link OperateMode}
      */
-    virtual void setOperateMode(itas109::OperateMode operateMode);
+    virtual void setOperateMode(OperateMode operateMode);
 
     /**
      * @brief open serial port 打开串口
@@ -103,7 +100,7 @@ public:
      * @retval 0 success 成功
      * @retval 14 invalid parameter error 无效的参数
      */
-    int connectReadEvent(itas109::CSerialPortListener *event);
+    int connectReadEvent(CSerialPortListener *event);
 
     /**
      * @brief disconnect read event 断开连接读取事件
@@ -225,7 +222,7 @@ public:
     /**
      * @brief Get the Last Error object 获取最后的错误代码
      *
-     * @return return last error code, refrence {@link itas109::SerialPortError} 错误代码
+     * @return return last error code, refrence {@link SerialPortError} 错误代码
      */
     virtual int getLastError() const;
     /**
@@ -269,54 +266,54 @@ public:
     /**
      * @brief Set the Parity object 设置校验位
      *
-     * @param parity [in] the parity 校验位 {@link itas109::Parity}
+     * @param parity [in] the parity 校验位 {@link Parity}
      */
-    virtual void setParity(itas109::Parity parity) = 0;
+    virtual void setParity(Parity parity) = 0;
     /**
      * @brief Get the Parity object 获取校验位
      *
-     * @return return parity 返回校验位 {@link itas109::Parity}
+     * @return return parity 返回校验位 {@link Parity}
      */
-    virtual itas109::Parity getParity() const = 0;
+    virtual Parity getParity() const = 0;
 
     /**
      * @brief Set the Data Bits object 设置数据位
      *
-     * @param dataBits [in] the dataBits 数据位 {@link itas109::DataBits}
+     * @param dataBits [in] the dataBits 数据位 {@link DataBits}
      */
-    virtual void setDataBits(itas109::DataBits dataBits) = 0;
+    virtual void setDataBits(DataBits dataBits) = 0;
     /**
      * @brief Get the Data Bits object 获取数据位
      *
-     * @return return dataBits 返回数据位 {@link itas109::DataBits}
+     * @return return dataBits 返回数据位 {@link DataBits}
      */
-    virtual itas109::DataBits getDataBits() const = 0;
+    virtual DataBits getDataBits() const = 0;
 
     /**
      * @brief Set the Stop Bits object 设置停止位
      *
-     * @param stopbits [in] the stopbits 停止位 {@link itas109::StopBits}
+     * @param stopbits [in] the stopbits 停止位 {@link StopBits}
      */
-    virtual void setStopBits(itas109::StopBits stopbits) = 0;
+    virtual void setStopBits(StopBits stopbits) = 0;
     /**
      * @brief Get the Stop Bits object 获取停止位
      *
-     * @return return stopbits 返回停止位 {@link itas109::StopBits}
+     * @return return stopbits 返回停止位 {@link StopBits}
      */
-    virtual itas109::StopBits getStopBits() const = 0;
+    virtual StopBits getStopBits() const = 0;
 
     /**
      * @brief Set the Flow Control object 设置流控制
      *
      * @param flowControl [in]
      */
-    virtual void setFlowControl(itas109::FlowControl flowControl) = 0;
+    virtual void setFlowControl(FlowControl flowControl) = 0;
     /**
      * @brief Get the Flow Control object 获取流控制
      *
-     * @return itas109::FlowControl
+     * @return FlowControl
      */
-    virtual itas109::FlowControl getFlowControl() const = 0;
+    virtual FlowControl getFlowControl() const = 0;
 
     /**
      * @brief Set the Read Buffer Size object 设置读取缓冲区大小
@@ -346,12 +343,12 @@ public:
 
 protected:
     int m_lastError;                                        ///< last error code 最后的错误代码
-    itas109::OperateMode m_operateMode;                     ///< operate mode 串口操作类型
+    OperateMode m_operateMode;                     ///< operate mode 串口操作类型
     unsigned int m_readIntervalTimeoutMS;                   ///< read time timeout millisecond 读取间隔时间，单位：毫秒
     unsigned int m_minByteReadNotify;                       ///< minimum byte of read notify 读取通知触发最小字节数
-    itas109::IMutex *p_mutex;                               ///< mutex 互斥锁
-    itas109::CSerialPortListener *p_readEvent;              ///< read event 读取事件
-    itas109::ITimer<itas109::CSerialPortListener> *p_timer; ///< read timer 读取定时器
+    IMutex *p_mutex;                               ///< mutex 互斥锁
+    CSerialPortListener *p_readEvent;              ///< read event 读取事件
+    ITimer<CSerialPortListener> *p_timer; ///< read timer 读取定时器
 private:
 };
 #endif //__CSERIALPORTBASE_H__

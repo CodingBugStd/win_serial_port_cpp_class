@@ -74,8 +74,6 @@
 #define LOG_INFO(format, ...)
 #endif
 
-namespace itas109
-{
 /**
  * @brief serial port info struct 串口信息结构体
  *
@@ -204,6 +202,5 @@ enum SerialPortError
     ErrorWriteFailed,  ///< write failed 写入失败
     ErrorReadFailed    ///< read failed 读取失败
 };
-} // namespace itas109
 
 #endif //__CSERIALPORT_GLOBAL_H__

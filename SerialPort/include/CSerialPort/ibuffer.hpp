@@ -35,8 +35,6 @@ static unsigned int nextPowerOf2(unsigned int num)
     return ++num;
 }
 
-namespace itas109
-{
 /**
  * @brief Buffer base class 缓冲区基类
  *
@@ -261,5 +259,5 @@ private:
     unsigned int m_maxMirrorBufferIndex; ///< 2 * m_maxBuffSize - 1
     T *m_buffer;
 };
-} // namespace itas109
+
 #endif // __I_BUFFER_HPP__

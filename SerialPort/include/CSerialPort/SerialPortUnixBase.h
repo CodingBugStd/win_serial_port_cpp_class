@@ -65,11 +65,11 @@ public:
      * @param readBufferSize [in] the read buffer size 读取缓冲区大小
      */
     virtual void init(const char *portName,
-                      int baudRate = itas109::BaudRate9600,
-                      itas109::Parity parity = itas109::ParityNone,
-                      itas109::DataBits dataBits = itas109::DataBits8,
-                      itas109::StopBits stopbits = itas109::StopOne,
-                      itas109::FlowControl flowControl = itas109::FlowNone,
+                      int baudRate = BaudRate9600,
+                      Parity parity = ParityNone,
+                      DataBits dataBits = DataBits8,
+                      StopBits stopbits = StopOne,
+                      FlowControl flowControl = FlowNone,
                       unsigned int readBufferSize = 4096);
 
     /**
@@ -220,40 +220,40 @@ public:
     /**
      * @brief Set the Parity object 设置校验位
      *
-     * @param parity [in] the parity 校验位 {@link itas109::Parity}
+     * @param parity [in] the parity 校验位 {@link Parity}
      */
-    virtual void setParity(itas109::Parity parity);
+    virtual void setParity(Parity parity);
     /**
      * @brief Get the Parity object 获取校验位
      *
-     * @return return parity 返回校验位 {@link itas109::Parity}
+     * @return return parity 返回校验位 {@link Parity}
      */
-    virtual itas109::Parity getParity() const;
+    virtual Parity getParity() const;
     /**
      * @brief Set the Data Bits object 设置数据位
      *
-     * @param dataBits [in] the dataBits 数据位 {@link itas109::DataBits}
+     * @param dataBits [in] the dataBits 数据位 {@link DataBits}
      */
-    virtual void setDataBits(itas109::DataBits dataBits);
+    virtual void setDataBits(DataBits dataBits);
     /**
      * @brief Get the Data Bits object 获取数据位
      *
-     * @return return dataBits 返回数据位 {@link itas109::DataBits}
+     * @return return dataBits 返回数据位 {@link DataBits}
      */
-    virtual itas109::DataBits getDataBits() const;
+    virtual DataBits getDataBits() const;
 
     /**
      * @brief Set the Stop Bits object 设置停止位
      *
-     * @param stopbits [in] the stopbits 停止位 {@link itas109::StopBits}
+     * @param stopbits [in] the stopbits 停止位 {@link StopBits}
      */
-    virtual void setStopBits(itas109::StopBits stopbits);
+    virtual void setStopBits(StopBits stopbits);
     /**
      * @brief Get the Stop Bits object 获取停止位
      *
-     * @return return stopbits 返回停止位 {@link itas109::StopBits}
+     * @return return stopbits 返回停止位 {@link StopBits}
      */
-    virtual itas109::StopBits getStopBits() const;
+    virtual StopBits getStopBits() const;
 
     /**
      * @brief Set the Flow Control object 设置流控制
@@ -261,14 +261,14 @@ public:
      *
      * @param flowControl [in]
      */
-    virtual void setFlowControl(itas109::FlowControl flowControl);
+    virtual void setFlowControl(FlowControl flowControl);
     /**
      * @brief Get the Flow Control object 获取流控制
      * @todo Not implemented 未实现
      *
-     * @return itas109::FlowControl
+     * @return FlowControl
      */
-    virtual itas109::FlowControl getFlowControl() const;
+    virtual FlowControl getFlowControl() const;
 
     /**
      * @brief Set the Read Buffer Size object 设置读取缓冲区大小
@@ -324,11 +324,11 @@ private:
      * @return 0 success -1 error
      */
     int uartSet(int fd,
-                int baudRate = itas109::BaudRate9600,
-                itas109::Parity parity = itas109::ParityNone,
-                itas109::DataBits dataBits = itas109::DataBits8,
-                itas109::StopBits stopbits = itas109::StopOne,
-                itas109::FlowControl flowControl = itas109::FlowNone);
+                int baudRate = BaudRate9600,
+                Parity parity = ParityNone,
+                DataBits dataBits = DataBits8,
+                StopBits stopbits = StopOne,
+                FlowControl flowControl = FlowNone);
 
     /**
      * @brief thread monitor 多线程监视器
@@ -367,19 +367,19 @@ private:
 private:
     char m_portName[256];
     int m_baudRate;
-    itas109::Parity m_parity;
-    itas109::DataBits m_dataBits;
-    itas109::StopBits m_stopbits;
-    itas109::FlowControl m_flowControl;
+    Parity m_parity;
+    DataBits m_dataBits;
+    StopBits m_stopbits;
+    FlowControl m_flowControl;
     unsigned int m_readBufferSize;
 
     int fd; /* File descriptor for the port */
 
 private:
-    itas109::i_thread_t m_monitorThread; /**< read thread */
+    i_thread_t m_monitorThread; /**< read thread */
 
     bool m_isThreadRunning;
 
-    itas109::RingBuffer<char> *p_buffer; ///< receive buffer
+    RingBuffer<char> *p_buffer; ///< receive buffer
 };
 #endif //__CSERIALPORTUNIXBASE_H__

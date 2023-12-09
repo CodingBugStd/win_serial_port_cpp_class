@@ -4,20 +4,20 @@
 
 CSerialPortBase::CSerialPortBase()
     : m_lastError(0)
-    , m_operateMode(itas109::AsynchronousOperate)
+    , m_operateMode(AsynchronousOperate)
     , m_readIntervalTimeoutMS(50)
     , m_minByteReadNotify(1)
     , p_mutex(NULL)
     , p_readEvent(NULL)
     , p_timer(NULL)
 {
-    p_mutex = new itas109::IMutex();
-    p_timer = new itas109::ITimer<itas109::CSerialPortListener>();
+    p_mutex = new IMutex();
+    p_timer = new ITimer<CSerialPortListener>();
 }
 
 CSerialPortBase::CSerialPortBase(const char *portName)
     : m_lastError(0)
-    , m_operateMode(itas109::AsynchronousOperate)
+    , m_operateMode(AsynchronousOperate)
     , m_readIntervalTimeoutMS(50)
     , m_minByteReadNotify(1)
     , p_mutex(NULL)
@@ -25,8 +25,8 @@ CSerialPortBase::CSerialPortBase(const char *portName)
     , p_timer(NULL)
 
 {
-    p_mutex = new itas109::IMutex();
-    p_timer = new itas109::ITimer<itas109::CSerialPortListener>();
+    p_mutex = new IMutex();
+    p_timer = new ITimer<CSerialPortListener>();
 }
 
 CSerialPortBase::~CSerialPortBase()
@@ -44,7 +44,7 @@ CSerialPortBase::~CSerialPortBase()
     }
 }
 
-void CSerialPortBase::setOperateMode(itas109::OperateMode operateMode)
+void CSerialPortBase::setOperateMode(OperateMode operateMode)
 {
     m_operateMode = operateMode;
 }
@@ -68,45 +68,45 @@ const char *CSerialPortBase::getLastErrorMsg() const
 {
     switch (m_lastError)
     {
-        case itas109::ErrorUnknown:
+        case ErrorUnknown:
             return "unknown error";
-        case itas109::ErrorOK:
+        case ErrorOK:
             return "success";
-        case itas109::ErrorFail:
+        case ErrorFail:
             return "general error";
-        case itas109::ErrorNotImplemented:
+        case ErrorNotImplemented:
             return "not implemented error";
-        case itas109::ErrorInner:
+        case ErrorInner:
             return "innet error";
-        case itas109::ErrorNullPointer:
+        case ErrorNullPointer:
             return "null pointer error";
-        case itas109::ErrorInvalidParam:
+        case ErrorInvalidParam:
             return "invalid param error";
-        case itas109::ErrorAccessDenied:
+        case ErrorAccessDenied:
             return "access denied error";
-        case itas109::ErrorOutOfMemory:
+        case ErrorOutOfMemory:
             return "out of memory error";
-        case itas109::ErrorTimeout:
+        case ErrorTimeout:
             return "timeout error";
-        case itas109::ErrorNotInit:
+        case ErrorNotInit:
             return "not init error";
-        case itas109::ErrorInitFailed:
+        case ErrorInitFailed:
             return "init failed error";
-        case itas109::ErrorAlreadyExist:
+        case ErrorAlreadyExist:
             return "already exist error";
-        case itas109::ErrorNotExist:
+        case ErrorNotExist:
             return "not exist error";
-        case itas109::ErrorAlreadyOpen:
+        case ErrorAlreadyOpen:
             return "already open error";
-        case itas109::ErrorNotOpen:
+        case ErrorNotOpen:
             return "not open error";
-        case itas109::ErrorOpenFailed:
+        case ErrorOpenFailed:
             return "open failed error";
-        case itas109::ErrorCloseFailed:
+        case ErrorCloseFailed:
             return "close failed error";
-        case itas109::ErrorWriteFailed:
+        case ErrorWriteFailed:
             return "write failed error";
-        case itas109::ErrorReadFailed:
+        case ErrorReadFailed:
             return "read failed error";
         default:
             return "undefined error code";
@@ -116,24 +116,24 @@ const char *CSerialPortBase::getLastErrorMsg() const
 
 void CSerialPortBase::clearError()
 {
-    m_lastError = itas109::ErrorOK;
+    m_lastError = ErrorOK;
 }
 
-int CSerialPortBase::connectReadEvent(itas109::CSerialPortListener *event)
+int CSerialPortBase::connectReadEvent(CSerialPortListener *event)
 {
     if (event)
     {
         p_readEvent = event;
-        return itas109::ErrorOK;
+        return ErrorOK;
     }
     else
     {
-        return itas109::ErrorInvalidParam;
+        return ErrorInvalidParam;
     }
 }
 
 int CSerialPortBase::disconnectReadEvent()
 {
     p_readEvent = NULL;
-    return itas109::ErrorOK;
+    return ErrorOK;
 }

@@ -17,15 +17,10 @@
 #include "SerialPort_global.h"
 #include "SerialPortListener.h"
 
-namespace itas109
-{
 template <class T> class ITimer;
-}
 
 class CSerialPortBase;
 
-namespace itas109
-{
 /**
  * @brief the CSerialPort class 串口类库
  * @see reference 引用 CSerialPortBase
@@ -62,19 +57,19 @@ public:
      * @param readBufferSize [in] the read buffer size 读取缓冲区大小
      */
     void init(const char *portName,
-              int baudRate = itas109::BaudRate9600,
-              itas109::Parity parity = itas109::ParityNone,
-              itas109::DataBits dataBits = itas109::DataBits8,
-              itas109::StopBits stopbits = itas109::StopOne,
-              itas109::FlowControl flowControl = itas109::FlowNone,
+              int baudRate = BaudRate9600,
+              Parity parity = ParityNone,
+              DataBits dataBits = DataBits8,
+              StopBits stopbits = StopOne,
+              FlowControl flowControl = FlowNone,
               unsigned int readBufferSize = 4096);
 
     /**
      * @brief Set the Operate Mode object 设置串口操作模式
      *
-     * @param operateMode [in] the operate mode 串口操作模式 {@link itas109::OperateMode}
+     * @param operateMode [in] the operate mode 串口操作模式 {@link OperateMode}
      */
-    void setOperateMode(itas109::OperateMode operateMode = itas109::AsynchronousOperate);
+    void setOperateMode(OperateMode operateMode = AsynchronousOperate);
 
     /**
      * @brief open serial port 打开串口
@@ -108,7 +103,7 @@ public:
      * @retval 0 success 成功
      * @retval 14 invalid parameter error 无效的参数
      */
-    int connectReadEvent(itas109::CSerialPortListener *event);
+    int connectReadEvent(CSerialPortListener *event);
 
     /**
      * @brief disconnect read event 断开连接读取事件
@@ -226,7 +221,7 @@ public:
     /**
      * @brief Get the Last Error object 获取最后的错误代码
      *
-     * @return return last error code, refrence {@link itas109::SerialPortError} 错误代码
+     * @return return last error code, refrence {@link SerialPortError} 错误代码
      */
     int getLastError() const;
     /**
@@ -269,41 +264,41 @@ public:
     /**
      * @brief Set the Parity object 设置校验位
      *
-     * @param parity [in] the parity 校验位 {@link itas109::Parity}
+     * @param parity [in] the parity 校验位 {@link Parity}
      */
-    void setParity(itas109::Parity parity);
+    void setParity(Parity parity);
     /**
      * @brief Get the Parity object 获取校验位
      *
-     * @return return parity 返回校验位 {@link itas109::Parity}
+     * @return return parity 返回校验位 {@link Parity}
      */
-    itas109::Parity getParity() const;
+    Parity getParity() const;
 
     /**
      * @brief Set the Data Bits object 设置数据位
      *
-     * @param dataBits [in] the dataBits 数据位  {@link itas109::DataBits}
+     * @param dataBits [in] the dataBits 数据位  {@link DataBits}
      */
-    void setDataBits(itas109::DataBits dataBits);
+    void setDataBits(DataBits dataBits);
     /**
      * @brief Get the Data Bits object 获取数据位
      *
-     * @return return dataBits 返回数据位 {@link itas109::DataBits}
+     * @return return dataBits 返回数据位 {@link DataBits}
      */
-    itas109::DataBits getDataBits() const;
+    DataBits getDataBits() const;
 
     /**
      * @brief Set the Stop Bits object 设置停止位
      *
-     * @param stopbits [in] the stopbits 停止位 {@link itas109::StopBits}
+     * @param stopbits [in] the stopbits 停止位 {@link StopBits}
      */
-    void setStopBits(itas109::StopBits stopbits);
+    void setStopBits(StopBits stopbits);
     /**
      * @brief Get the Stop Bits object 获取停止位
      *
-     * @return return stopbits 返回停止位 {@link itas109::StopBits}
+     * @return return stopbits 返回停止位 {@link StopBits}
      */
-    itas109::StopBits getStopBits() const;
+    StopBits getStopBits() const;
 
     /**
      * @brief Set the Flow Control object 设置流控制
@@ -311,14 +306,14 @@ public:
      *
      * @param flowControl [in]
      */
-    void setFlowControl(itas109::FlowControl flowControl);
+    void setFlowControl(FlowControl flowControl);
     /**
      * @brief Get the Flow Control object 获取流控制
      * @todo Not implemented 未实现
      *
-     * @return itas109::FlowControl
+     * @return FlowControl
      */
-    itas109::FlowControl getFlowControl() const;
+    FlowControl getFlowControl() const;
 
     /**
      * @brief Set the Read Buffer Size object
@@ -356,5 +351,4 @@ public:
 private:
     CSerialPortBase *p_serialPortBase;
 };
-} // namespace itas109
 #endif //__CSERIALPORT_H__

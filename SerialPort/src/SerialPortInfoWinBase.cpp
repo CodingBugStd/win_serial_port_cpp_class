@@ -42,7 +42,7 @@ static char *WCharToChar(char *dest, const wchar_t *wstr)
  * @retval true true if excute success 执行成功返回true
  * @retval false false if excute failed 执行失败返回false
  */
-bool enumDetailsSerialPorts(std::vector<itas109::SerialPortInfo> &portInfoList)
+bool enumDetailsSerialPorts(std::vector<SerialPortInfo> &portInfoList)
 {
     // https://docs.microsoft.com/en-us/windows/win32/api/setupapi/nf-setupapi-setupdienumdeviceinfo
 
@@ -81,16 +81,16 @@ bool enumDetailsSerialPorts(std::vector<itas109::SerialPortInfo> &portInfoList)
             TCHAR hardwareId[256] = {0};
             SetupDiGetDeviceRegistryProperty(hDevInfo, &devInfoData, SPDRP_HARDWAREID, NULL, (PBYTE)hardwareId, sizeof(hardwareId), NULL);
 
-            itas109::SerialPortInfo m_serialPortInfo;
+            SerialPortInfo m_serialPortInfo;
 #ifdef UNICODE
             char portNameChar[256], friendlyNameChar[256], hardwareIdChar[256];
-            itas109::IUtils::strncpy(m_serialPortInfo.portName, WCharToChar(portNameChar, portName), 256);
-            itas109::IUtils::strncpy(m_serialPortInfo.description, WCharToChar(friendlyNameChar, friendlyName), 256);
-            itas109::IUtils::strncpy(m_serialPortInfo.hardwareId, WCharToChar(hardwareIdChar, hardwareId), 256);
+            IUtils::strncpy(m_serialPortInfo.portName, WCharToChar(portNameChar, portName), 256);
+            IUtils::strncpy(m_serialPortInfo.description, WCharToChar(friendlyNameChar, friendlyName), 256);
+            IUtils::strncpy(m_serialPortInfo.hardwareId, WCharToChar(hardwareIdChar, hardwareId), 256);
 #else
-            itas109::IUtils::strncpy(m_serialPortInfo.portName, portName, 256);
-            itas109::IUtils::strncpy(m_serialPortInfo.description, friendlyName, 256);
-            itas109::IUtils::strncpy(m_serialPortInfo.hardwareId, hardwareId, 256);
+            IUtils::strncpy(m_serialPortInfo.portName, portName, 256);
+            IUtils::strncpy(m_serialPortInfo.description, friendlyName, 256);
+            IUtils::strncpy(m_serialPortInfo.hardwareId, hardwareId, 256);
 #endif
             // remove (COMxx)
             int index = 0;
@@ -125,9 +125,9 @@ CSerialPortInfoWinBase::CSerialPortInfoWinBase() {}
 
 CSerialPortInfoWinBase::~CSerialPortInfoWinBase() {}
 
-std::vector<itas109::SerialPortInfo> CSerialPortInfoWinBase::availablePortInfos()
+std::vector<SerialPortInfo> CSerialPortInfoWinBase::availablePortInfos()
 {
-    std::vector<itas109::SerialPortInfo> portInfoList;
+    std::vector<SerialPortInfo> portInfoList;
     enumDetailsSerialPorts(portInfoList);
 
     return portInfoList;

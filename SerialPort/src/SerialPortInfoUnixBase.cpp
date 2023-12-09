@@ -237,11 +237,11 @@ char *getHardwareId(char *hardwareId, io_registry_entry_t &device)
     return hardwareId;
 }
 
-std::vector<itas109::SerialPortInfo> getPortInfoListMac()
+std::vector<SerialPortInfo> getPortInfoListMac()
 {
     // https://developer.apple.com/documentation/iokit/communicating_with_a_modem_on_a_serial_port
-    itas109::SerialPortInfo m_serialPortInfo;
-    std::vector<itas109::SerialPortInfo> portInfoList;
+    SerialPortInfo m_serialPortInfo;
+    std::vector<SerialPortInfo> portInfoList;
 
     kern_return_t kernResult;
     CFMutableDictionaryRef classesToMatch;
@@ -277,9 +277,9 @@ std::vector<itas109::SerialPortInfo> getPortInfoListMac()
             continue;
         }
 
-        itas109::IUtils::strncpy(m_serialPortInfo.portName, device_path, MAXPATHLEN);
-        itas109::IUtils::strncpy(m_serialPortInfo.description, "", 1);
-        itas109::IUtils::strncpy(m_serialPortInfo.hardwareId, device_hardware_id, MAXPATHLEN);
+        IUtils::strncpy(m_serialPortInfo.portName, device_path, MAXPATHLEN);
+        IUtils::strncpy(m_serialPortInfo.description, "", 1);
+        IUtils::strncpy(m_serialPortInfo.hardwareId, device_hardware_id, MAXPATHLEN);
         portInfoList.push_back(m_serialPortInfo);
     }
 
@@ -288,21 +288,21 @@ std::vector<itas109::SerialPortInfo> getPortInfoListMac()
 }
 #endif
 
-std::vector<itas109::SerialPortInfo> getPortInfoList()
+std::vector<SerialPortInfo> getPortInfoList()
 {
-    std::vector<itas109::SerialPortInfo> portInfoList;
+    std::vector<SerialPortInfo> portInfoList;
 #ifdef I_OS_LINUX
     // TODO: need to optimize
-    itas109::SerialPortInfo m_serialPortInfo;
+    SerialPortInfo m_serialPortInfo;
     std::vector<std::string> portList = getPortInfoListLinux();
 
     int count = portList.size();
 
     for (int i = 0; i < count; i++)
     {
-        itas109::IUtils::strncpy(m_serialPortInfo.portName, portList[i].c_str(), 256);
-        itas109::IUtils::strncpy(m_serialPortInfo.description, "", 1);
-        itas109::IUtils::strncpy(m_serialPortInfo.hardwareId, "", 1);
+        IUtils::strncpy(m_serialPortInfo.portName, portList[i].c_str(), 256);
+        IUtils::strncpy(m_serialPortInfo.description, "", 1);
+        IUtils::strncpy(m_serialPortInfo.hardwareId, "", 1);
         portInfoList.push_back(m_serialPortInfo);
     }
 #elif defined I_OS_MAC
@@ -317,7 +317,7 @@ CSerialPortInfoUnixBase::CSerialPortInfoUnixBase() {}
 
 CSerialPortInfoUnixBase::~CSerialPortInfoUnixBase() {}
 
-std::vector<itas109::SerialPortInfo> CSerialPortInfoUnixBase::availablePortInfos()
+std::vector<SerialPortInfo> CSerialPortInfoUnixBase::availablePortInfos()
 {
     return getPortInfoList();
 }

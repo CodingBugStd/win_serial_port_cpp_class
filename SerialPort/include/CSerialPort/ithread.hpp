@@ -19,8 +19,6 @@
 #include <errno.h> // ETIMEDOUT
 #endif
 
-namespace itas109
-{
 #if defined(_WIN32)
 typedef CRITICAL_SECTION i_mutex_t;
 
@@ -336,5 +334,4 @@ private:
     IMutex internal_mutex;
 };
 #endif
-} // namespace itas109
 #endif // ifndef __I_THREAD_HPP__

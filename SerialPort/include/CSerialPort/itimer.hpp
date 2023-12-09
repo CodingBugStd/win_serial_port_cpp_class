@@ -25,8 +25,6 @@
 
 #define PORT_NAME_MAX_LEN 256
 
-namespace itas109
-{
 template <class T> class ITimer
 {
 public:
@@ -64,7 +62,7 @@ public:
             ((p_base->p_class)->*(p_base->p_memfun))();
         }
 #else
-        itas109::IMutex mutex;
+        IMutex mutex;
         if (p_base->m_cv.timeWait(mutex, p_base->m_timeoutMs, p_base->m_tryStop))
         {
             // timeout
@@ -91,7 +89,7 @@ public:
         m_timeoutMs = timeoutMs;
         p_class = pclass;
         p_memfun = pmemfun;
-        itas109::IUtils::strncpy(m_portName, portName, PORT_NAME_MAX_LEN);
+        IUtils::strncpy(m_portName, portName, PORT_NAME_MAX_LEN);
         m_readBufferLen = readBufferLen;
 
         if (m_isRunning)
@@ -105,7 +103,7 @@ public:
         {
             i_thread_join(handle);
         }
-        itas109::i_thread_create(&handle, NULL, threadFun, (void *)this);
+        i_thread_create(&handle, NULL, threadFun, (void *)this);
     }
 
     void stop()
@@ -146,12 +144,12 @@ private:
     std::condition_variable m_cv;
     std::mutex m_stopMutex;
 #else
-    itas109::IConditionVariable m_cvStop;
-    itas109::IConditionVariable m_cv;
-    itas109::IMutex m_stopMutex;
+    IConditionVariable m_cvStop;
+    IConditionVariable m_cv;
+    IMutex m_stopMutex;
 #endif
 
-    itas109::i_thread_t handle;
+    i_thread_t handle;
     unsigned int m_timeoutMs;
     char m_portName[PORT_NAME_MAX_LEN];
     unsigned int m_readBufferLen;
@@ -159,5 +157,4 @@ private:
     T *p_class;
     void (T::*p_memfun)(const char *, unsigned int);
 };
-} // namespace itas109
 #endif // __I_TIMER_HPP__
