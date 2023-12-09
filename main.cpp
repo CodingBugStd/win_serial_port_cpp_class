@@ -3,39 +3,99 @@
 #include "SerialPort.h"
 #include <vector>
 
-static int serial_evt_handler(SerialPort::SerialPortEvent evt)
+static SerialPort* port1;        //硬件串口
+static SerialPort* port2;      //透传串口
+
+static int port1Handler(SerialPort::SerialPortEvent evt)
 {
-    char buf[128];
-    int cnt;
-    cnt = evt.instance->read(  (uint8_t*)buf , sizeof(buf) - 1  );
-    buf[ cnt ] = '\0';
-    std::cout<<buf;
+    if( evt.code == SerialPort::RECEIVE )
+    {
+        uint8_t buf[64];
+        int cnt = evt.instance->read( buf , sizeof(buf) );
+        std::cout<<"port1 recieve : "<<cnt<<" bytes."<<std::endl;
+        
+    }else if( evt.code == SerialPort::DISCONNECT )
+    {
+        std::cout<<"port "<<evt.instance->connectedSerialPortInfo().portName<<" disconnect"<<std::endl;
+    }
     return 0;
 }
 
-int main()
+static int port2Handler(SerialPort::SerialPortEvent evt)
 {
-    std::vector<SerialPort::SerialPortInfo> _list = SerialPort::getSerialPortList();
-    char* t = "HelloWorld!\r\n";
-
-    for( const auto& portInfo : _list )
+    if( evt.code == SerialPort::RECEIVE )
     {
-        std::cout<<portInfo.portName<<std::endl;
+        uint8_t buf[64];
+        int cnt = evt.instance->read( buf , sizeof(buf) );
+        std::cout<<"port1 recieve : "<<cnt<<" bytes."<<std::endl;
+    }else if( evt.code == SerialPort::DISCONNECT )
+    {
+        std::cout<<"port "<<evt.instance->connectedSerialPortInfo().portName<<" disconnect"<<std::endl;
+    }
+    return 0;
+}
+
+static int connect_port(void)
+{
+    if( port1->isConnected() )
+    {
+        port1->disconnect();
+    }
+    if( port2->isConnected() )
+    {
+        port2->disconnect();
     }
 
-    SerialPort* serialPort = new SerialPort;
-    serialPort->registerEventHandler( serial_evt_handler , NULL );
-    serialPort->connect(29 , 921600);
+    auto serialList = SerialPort::getSerialPortList();
+    std::cout<<"find "<<serialList.size()<<" serail port"<<std::endl;
+    std::cout<<"----------port list---------"<<std::endl;
+    for( auto it = serialList.begin() ; it != serialList.end() ; ++it )
+    {
+        std::cout<<"portName:"<<it->portName<<std::endl;
+    }
+
+    int portNumber;
+    int portBound;
+
+    std::cout<<"input hard serial port number:";
+    std::cin>>portNumber;
+    std::cout<<"input hard serial port bound:";
+    std::cin>>portBound;
+
+    port1->registerEventHandler( port1Handler , NULL );
+    if( !port1->connect( portNumber , portBound ) )
+    {
+        std::cout<<portNumber<<" connect error."<<std::endl;
+        return -1;
+    }
+
+    std::cout<<"input across serial port number:";
+    std::cin>>portNumber;
+    std::cout<<"input across serial port bound:";
+    std::cin>>portBound;
+
+    port2->registerEventHandler( port2Handler , NULL );
+    if( !port2->connect( portNumber , portBound ) )
+    {
+        printf("connect error.");
+        return -1;
+    }
+
+    return 0;
+}
+
+int main(void)
+{
+    port1 = new SerialPort;
+    port2 = new SerialPort;
+
+    while( connect_port() );
 
     while(1)
     {
-        static uint16_t timeout = 0;
-        timeout++;
-        serialPort->write( (uint8_t*)t , strlen(t) );
-        Sleep(1000);
+        Sleep(100);
+        port1->write( (uint8_t*)"HelloWorld!" , strlen("HelloWorld!") );
     }
-
-    while(1);
 
     return 0;
 }
